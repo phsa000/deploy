@@ -6,19 +6,16 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-// Middleware para interpretar o corpo das requisições como JSON
 app.use(bodyParser.json());
-app.use(cors()); // Permite CORS
+app.use(cors());
 
-// Configuração da conexão MySQL
 const connection = mysql.createConnection({
-    host: 'localhost',    // Hospedagem do MySQL, localhost para rodar localmente
-    user: 'root',         // Nome de usuário para o MySQL (root para usuário padrão)
-    password: 'root',     // Senha do usuário root, altere conforme necessário
-    database: 'todo_app'  // Nome do banco de dados, substitua pelo seu banco
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'todo_app'
 });
 
-// Conexão com o MySQL
 connection.connect((err) => {
     if (err) {
         console.error('Erro ao conectar ao MySQL:', err);
@@ -27,7 +24,6 @@ connection.connect((err) => {
     console.log('Conectado ao MySQL!');
 });
 
-// Rota para obter todas as tarefas
 app.get('/tasks', (req, res) => {
     connection.query('SELECT * FROM tasks', (err, results) => {
         if (err) {
@@ -37,22 +33,20 @@ app.get('/tasks', (req, res) => {
     });
 });
 
-// Rota para adicionar uma nova tarefa
 app.post('/tasks', (req, res) => {
-    const { title } = req.body; // Desestrutura o título do corpo da requisição
+    const { title } = req.body;
     if (!title) {
-        return res.status(400).send('Título é obrigatório'); // Retornar erro se o título não estiver presente
+        return res.status(400).send('Título é obrigatório');
     }
     connection.query('INSERT INTO tasks (title) VALUES (?)', [title], (err, results) => {
         if (err) {
-            console.error('Erro ao adicionar tarefa:', err); // Log do erro
+            console.error('Erro ao adicionar tarefa:', err);
             return res.status(500).send('Erro ao adicionar tarefa');
         }
         res.status(201).send({ id: results.insertId, title });
     });
 });
 
-// Inicia o servidor
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
 });
