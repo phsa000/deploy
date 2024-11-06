@@ -1,0 +1,85 @@
+Requisitos
+
+softwares instalados:
+
+- Node.js
+- MySQL
+- Git
+
+Configurar o Banco de Dados
+
+1. Crie o banco de dados:
+    CREATE DATABASE todo_app;
+
+2. Crie a tabela `tasks`:
+    USE todo_app;
+
+    CREATE TABLE tasks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL
+    );
+
+Configurar o Servidor Node.js
+
+1. Crie a pasta do projeto e acesse-a:
+    mkdir deploy
+    cd deploy
+
+2. Inicialize o projeto Node.js:
+    npm init -y
+
+3. Instale as dependências:
+    npm install express mysql body-parser cors
+
+4. Crie o arquivo `server.js` com o seguinte conteúdo:
+
+    const express = require('express');
+    const mysql = require('mysql');
+    const bodyParser = require('body-parser');
+    const cors = require('cors');
+
+    const app = express();
+    const port = 3000;
+
+    app.use(bodyParser.json());
+    app.use(cors());
+
+    const connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: 'root',
+        database: 'todo_app'
+    });
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Erro ao conectar ao MySQL:', err);
+            return;
+        }
+        console.log('Conectado ao MySQL!');
+    });
+
+    app.get('/tasks', (req, res) => {
+        connection.query('SELECT * FROM tasks', (err, results) => {
+            if (err) return res.status(500).send('Erro ao obter tarefas');
+            res.json(results);
+        });
+    });
+
+    app.post('/tasks', (req, res) => {
+        const { title } = req.body;
+        if (!title) return res.status(400).send('Título é obrigatório');
+        connection.query('INSERT INTO tasks (title) VALUES (?)', [title], (err, results) => {
+            if (err) return res.status(500).send('Erro ao adicionar tarefa');
+            res.status(201).send({ id: results.insertId, title });
+        });
+    });
+
+    app.listen(port, () => {
+        console.log(`Servidor rodando na porta ${port}`);
+    });
+
+5. Inicie o servidor:
+    node server.js
+
+O servidor estará rodando na porta `3000`.
